@@ -1,8 +1,9 @@
-import thread, traceback
+import thread, traceback, sys
+from wsgiref import simple_server
 import wsgiref.simple_server
 
-file_serve = require('file_serve')
-run_code = require('run_code')
+file_serve = mapi.require('file_serve')
+run_code = mapi.require('run_code')
 
 def app(environ, start_response):
     try:
@@ -17,8 +18,16 @@ def app(environ, start_response):
         ])
         return [traceback.format_exc()]
 
+class RequestHandler(simple_server.WSGIRequestHandler):
+    def address_string(self):
+        return self.client_address[0]
+
+    def log_request(*args, **kwargs):
+        pass
+
 def run():
-    httpd = wsgiref.simple_server.make_server('', 2501, app)
+    threadID = thread.get_ident()
+    httpd = simple_server.make_server('', 2501, app, handler_class=RequestHandler)
     httpd.serve_forever()
 
 thread.start_new_thread(run, ())

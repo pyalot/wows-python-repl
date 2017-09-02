@@ -1,4 +1,11 @@
-import mimetypes, os
+import os
+
+types = {
+    'js': 'application/javascript',
+    'html': 'text/html',
+    'css': 'text/css',
+    'json': 'application/json',
+}
 
 def notFound(environ, start_response):
     start_response('404 Not Found', [
@@ -7,11 +14,11 @@ def notFound(environ, start_response):
     return ['Not Found']
 
 def readFile(path, environ, start_response):
-    (type, encoding) = mimetypes.guess_type(path)
-    type = type if type else 'text/plain'
+    ext = os.path.splitext(path)[1]
+    mime = types.get(ext[1:], 'text/plain')
     content = open(path, 'rb').read()
     start_response('200 OK', [
-        ('Content-Type', type),
+        ('Content-Type', mime),
         ('Content-Length', str(len(content))),
     ])
     return [content]
@@ -23,7 +30,7 @@ def getFile(environ, start_response):
     if path == '':
         path = 'index.html'
 
-    path = os.path.join(__dir__, 'www', path)
+    path = os.path.join(mapi.directory, 'www', path)
 
     if os.path.exists(path):
         if os.path.isdir(path):
